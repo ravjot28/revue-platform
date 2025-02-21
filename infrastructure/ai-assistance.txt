@@ -1,0 +1,358 @@
+# Project Structure
+.
+├── environments
+│   ├── prod
+│   │   ├── main.tf
+│   │   ├── terraform.tfvars
+│   │   └── variables.tf
+│   └── qa
+│       ├── main.tf
+│       ├── terraform.tfvars
+│       └── variables.tf
+├── modules
+│   ├── aks
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   ├── networking
+│   │   ├── main.tf
+│   │   ├── outputs.tf
+│   │   └── variables.tf
+│   └── postgresql
+│       ├── main.tf
+│       ├── outputs.tf
+│       └── variables.tf
+└── provider.tf
+
+# provider.tf
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+  backend "azurerm" {}
+}
+
+provider "azurerm" {
+  features {}
+  client_id       = var.client_id
+  client_secret   = var.client_secret
+  subscription_id = var.subscription_id
+  tenant_id       = var.tenant_id
+}
+
+# modules/networking/variables.tf
+variable "resource_group_name" {
+  type = string
+}
+
+variable "location" {
+  type = string
+}
+
+variable "environment" {
+  type = string
+}
+
+variable "address_space" {
+  type = list(string)
+}
+
+variable "subnet_prefixes" {
+  type = map(string)
+}
+
+# modules/networking/main.tf
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  address_space       = var.address_space
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "azurerm_subnet" "aks" {
+  name                 = "snet-aks-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.subnet_prefixes["aks"]]
+}
+
+resource "azurerm_subnet" "postgresql" {
+  name                 = "snet-postgresql-${var.environment}"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = [var.subnet_prefixes["postgresql"]]
+  service_endpoints    = ["Microsoft.Sql"]
+
+  delegation {
+    name = "fs"
+    service_delegation {
+      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+# modules/networking/outputs.tf
+output "vnet_id" {
+  value = azurerm_virtual_network.vnet.id
+}
+
+output "aks_subnet_id" {
+  value = azurerm_subnet.aks.id
+}
+
+output "postgresql_subnet_id" {
+  value = azurerm_subnet.postgresql.id
+}
+
+# modules/aks/variables.tf
+variable "resource_group_name" {
+  type = string
+}
+
+variable "location" {
+  type = string
+}
+
+variable "environment" {
+  type = string
+}
+
+variable "kubernetes_version" {
+  type = string
+}
+
+variable "subnet_id" {
+  type = string
+}
+
+variable "authorized_ip_ranges" {
+  type = list(string)
+}
+
+# modules/aks/main.tf
+resource "azurerm_kubernetes_cluster" "aks" {
+  name                = "aks-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  dns_prefix          = "aks-${var.environment}"
+  kubernetes_version  = var.kubernetes_version
+
+  default_node_pool {
+    name                = "systempool"
+    vm_size            = "Standard_D2s_v3"
+    vnet_subnet_id     = var.subnet_id
+    enable_auto_scaling = true
+    min_count          = 1
+    max_count          = 3
+    type               = "VirtualMachineScaleSets"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "azure"
+    network_policy    = "azure"
+    load_balancer_sku = "standard"
+  }
+
+  api_server_access_profile {
+    authorized_ip_ranges = var.authorized_ip_ranges
+    vnet_integration_enabled = true
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "cpu_pool" {
+  name                  = "cpupool"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
+  vm_size              = "Standard_F8s_v2"
+  enable_auto_scaling  = true
+  min_count           = 0
+  max_count           = 3
+  vnet_subnet_id      = var.subnet_id
+  node_taints         = ["project=cpu:NoSchedule"]
+  node_labels         = {
+    "project" = "cpu"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "mem_pool" {
+  name                  = "mempool"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
+  vm_size              = "Standard_E8s_v3"
+  enable_auto_scaling  = true
+  min_count           = 0
+  max_count           = 3
+  vnet_subnet_id      = var.subnet_id
+  node_taints         = ["project=mem:NoSchedule"]
+  node_labels         = {
+    "project" = "mem"
+  }
+}
+
+# modules/postgresql/variables.tf
+variable "resource_group_name" {
+  type = string
+}
+
+variable "location" {
+  type = string
+}
+
+variable "environment" {
+  type = string
+}
+
+variable "subnet_id" {
+  type = string
+}
+
+variable "administrator_login" {
+  type = string
+}
+
+variable "administrator_password" {
+  type = string
+}
+
+# modules/postgresql/main.tf
+resource "azurerm_postgresql_flexible_server" "postgresql" {
+  name                = "psql-${var.environment}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  version            = "14"
+  delegated_subnet_id = var.subnet_id
+  private_dns_zone_id = azurerm_private_dns_zone.postgresql.id
+
+  administrator_login    = var.administrator_login
+  administrator_password = var.administrator_password
+
+  storage_mb = 32768
+  sku_name   = "B_Standard_B1ms"
+
+  backup_retention_days = 7
+
+  depends_on = [
+    azurerm_private_dns_zone_virtual_network_link.postgresql
+  ]
+}
+
+resource "azurerm_private_dns_zone" "postgresql" {
+  name                = "private.postgres.database.azure.com"
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "postgresql" {
+  name                  = "postgresql-dns-link"
+  private_dns_zone_name = azurerm_private_dns_zone.postgresql.name
+  resource_group_name   = var.resource_group_name
+  virtual_network_id    = data.azurerm_subnet.postgresql.virtual_network_id
+}
+
+# environments/prod/variables.tf
+variable "client_id" {}
+variable "client_secret" {}
+variable "subscription_id" {}
+variable "tenant_id" {}
+
+variable "location" {
+  default = "eastus2"
+}
+
+variable "environment" {
+  default = "prod"
+}
+
+variable "address_space" {
+  default = ["10.0.0.0/16"]
+}
+
+variable "subnet_prefixes" {
+  default = {
+    aks        = "10.0.1.0/24"
+    postgresql = "10.0.2.0/24"
+  }
+}
+
+variable "authorized_ip_ranges" {
+  type = list(string)
+}
+
+variable "kubernetes_version" {
+  default = "1.26.0"
+}
+
+variable "postgresql_admin" {}
+variable "postgresql_password" {}
+
+# environments/prod/main.tf
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-${var.environment}"
+  location = var.location
+}
+
+module "networking" {
+  source              = "../../modules/networking"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  environment         = var.environment
+  address_space       = var.address_space
+  subnet_prefixes     = var.subnet_prefixes
+}
+
+module "aks" {
+  source              = "../../modules/aks"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location
+  environment         = var.environment
+  kubernetes_version  = var.kubernetes_version
+  subnet_id           = module.networking.aks_subnet_id
+  authorized_ip_ranges = var.authorized_ip_ranges
+}
+
+module "postgresql" {
+  source               = "../../modules/postgresql"
+  resource_group_name  = azurerm_resource_group.rg.name
+  location             = var.location
+  environment          = var.environment
+  subnet_id            = module.networking.postgresql_subnet_id
+  administrator_login  = var.postgresql_admin
+  administrator_password = var.postgresql_password
+}
+
+# environments/prod/terraform.tfvars
+location            = "eastus2"
+environment         = "prod"
+address_space       = ["10.0.0.0/16"]
+subnet_prefixes     = {
+  aks        = "10.0.1.0/24"
+  postgresql = "10.0.2.0/24"
+}
+authorized_ip_ranges = ["YOUR.IP.ADDRESS.HERE/32"]
+kubernetes_version   = "1.26.0"
+postgresql_admin     = "psqladmin"
+postgresql_password  = "CHANGE_ME_PLEASE"
+
+# environments/qa/terraform.tfvars
+location            = "eastus2"
+environment         = "qa"
+address_space       = ["10.1.0.0/16"]
+subnet_prefixes     = {
+  aks        = "10.1.1.0/24"
+  postgresql = "10.1.2.0/24"
+}
+authorized_ip_ranges = ["YOUR.IP.ADDRESS.HERE/32"]
+kubernetes_version   = "1.26.0"
+postgresql_admin     = "psqladmin"
+postgresql_password  = "CHANGE_ME_PLEASE"
