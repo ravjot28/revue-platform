@@ -1,27 +1,24 @@
-name: Terraform Destroy QA
+name: Terraform Apply QA
 
 on:
   workflow_dispatch:
 
 jobs:
-  destroy-qa:
+  apply-qa:
     runs-on: ubuntu-latest
     environment: qa
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: feature/test
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Azure Login - QA
+      - name: Azure Login
         uses: azure/login@v1
         with:
           creds: '{"clientId":"${{ secrets.QA_CLIENT_ID }}","clientSecret":"${{ secrets.QA_CLIENT_SECRET }}","subscriptionId":"${{ secrets.QA_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.QA_TENANT_ID }}"}'
 
-
-      - name: Destroy QA
+      - name: Apply QA
         working-directory: infrastructure/terraform/1-infrastructure
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
@@ -29,7 +26,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
         run: |
-          terraform init  \
+          terraform init  -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstateeu6ltgbm" \
           -backend-config="container_name=tfstate-qa" \
@@ -38,4 +35,4 @@ jobs:
           -backend-config="client_id=${{ secrets.QA_CLIENT_ID }}" \
           -backend-config="client_secret=${{ secrets.QA_CLIENT_SECRET }}" \
           -backend-config="tenant_id=${{ secrets.QA_TENANT_ID }}"
-          terraform destroy -var-file="environments/qa.tfvars" -auto-approve
+          terraform apply -auto-approve -var-file="environments/qa.tfvars"

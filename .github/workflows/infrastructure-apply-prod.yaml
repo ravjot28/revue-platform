@@ -1,27 +1,24 @@
-name: Terraform Destroy PROD
+name: Terraform Apply Prod
 
 on:
   workflow_dispatch:
 
 jobs:
-  destroy-prod:
+  apply-prod:
     runs-on: ubuntu-latest
     environment: prod
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: master
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Azure Login - PROD
+      - name: Azure Login
         uses: azure/login@v1
         with:
-          creds: '{"clientId":"${{ secrets.QA_CLIENT_ID }}","clientSecret":"${{ secrets.QA_CLIENT_SECRET }}","subscriptionId":"${{ secrets.QA_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.QA_TENANT_ID }}"}'
+          creds: '{"clientId":"${{ secrets.PROD_CLIENT_ID }}","clientSecret":"${{ secrets.PROD_CLIENT_SECRET }}","subscriptionId":"${{ secrets.PROD_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.PROD_TENANT_ID }}"}'
 
-
-      - name: Destroy PROD
+      - name: Apply PROD
         working-directory: infrastructure/terraform/1-infrastructure
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
@@ -29,7 +26,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
-          terraform init  \
+          terraform init  -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstateeu6ltgbm" \
           -backend-config="container_name=tfstate-prod" \
@@ -38,4 +35,4 @@ jobs:
           -backend-config="client_id=${{ secrets.PROD_CLIENT_ID }}" \
           -backend-config="client_secret=${{ secrets.PROD_CLIENT_SECRET }}" \
           -backend-config="tenant_id=${{ secrets.PROD_TENANT_ID }}"
-          terraform destroy -var-file="environments/prod.tfvars" -auto-approve
+          terraform apply -auto-approve -var-file="environments/prod.tfvars"
