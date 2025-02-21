@@ -17,7 +17,7 @@ resource "azurerm_cosmosdb_account" "main" {
   }
 
   capabilities {
-    name = var.environment == "prod" ? "EnableCassandra" : "EnableServerless"
+    name = "EnableServerless"
   }
 
   is_virtual_network_filter_enabled = true

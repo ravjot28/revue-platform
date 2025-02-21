@@ -42,11 +42,11 @@ resource "azurerm_postgresql_flexible_server" "main" {
   administrator_login    = var.admin_username
   administrator_password = var.admin_password != null ? var.admin_password : random_password.postgresql[0].result
 
-  storage_mb = var.environment == "prod" ? 65536 : 32768
+  storage_mb = var.environment == "revue-prod" ? 65536 : 32768
   sku_name   = var.sku_name
 
-  backup_retention_days        = var.environment == "prod" ? 30 : 7
-  geo_redundant_backup_enabled = var.environment == "prod"
+  backup_retention_days        = var.environment == "revue-prod" ? 30 : 7
+  geo_redundant_backup_enabled = var.environment == "revue-prod"
 
   # VNET integration settings
   delegated_subnet_id = var.vnet_subnet_id

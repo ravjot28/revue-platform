@@ -1,8 +1,8 @@
-subscription_id = "your-subscription-id"
-tenant_id       = "your-tenant-id"
-client_id       = "your-service-principal-id"
-client_secret   = "your-service-principal-secret"
-environment     = "prod"
+subscription_id = ""
+tenant_id       = ""
+client_id       = ""
+client_secret   = ""
+environment     = "revue-prod"
 location        = "eastus2"
 project         = "mvp"
-trusted_ips     = ["x.x.x.x/32"]
+trusted_ips     = ["76.69.70.249/32"]
