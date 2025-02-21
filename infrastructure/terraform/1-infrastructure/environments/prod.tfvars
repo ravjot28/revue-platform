@@ -5,4 +5,4 @@ client_secret   = ""
 environment     = "revue-prod"
 location        = "eastus2"
 project         = "mvp"
-trusted_ips     = ["x.x.x.x/32"]
+trusted_ips     = ["76.69.70.249/32"]
