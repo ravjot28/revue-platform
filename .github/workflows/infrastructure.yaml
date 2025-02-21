@@ -57,6 +57,7 @@ jobs:
           terraform plan -var-file="environments/prod.tfvars"
 
   apply-qa:
+    needs: plan-environments
 #    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
     runs-on: ubuntu-latest
     environment: qa
