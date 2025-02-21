@@ -28,7 +28,7 @@ jobs:
         working-directory: ${{ env.BOOTSTRAP_TERRAFORM_DIR }}
         run: |
           terraform init
-          terraform validate
+          terraform apply -var-file="environments/qa.tfvars"
 
       - name: Plan QA
         working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
@@ -38,19 +38,19 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
         run: |
-          terraform workspace select qa || terraform workspace new qa
-          terraform plan -var-file="qa.tfvars"
+          terraform init
+          terraform plan -var-file="environments/qa.tfvars"
 
       - name: Plan PROD
-        working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
+        working-directory: ${{ env.BOOTSTRAP_TERRAFORM_DIR }}
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}
           ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
-          terraform workspace select prod || terraform workspace new prod
-          terraform plan -var-file="prod.tfvars"
+          terraform init
+          terraform plan -var-file="environments/prod.tfvars"
 
   apply-qa:
 #    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
@@ -71,8 +71,7 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
         run: |
           terraform init
-          terraform workspace select qa || terraform workspace new qa
-          terraform apply -var-file="qa.tfvars" -auto-approve
+          terraform apply -var-file="environments/qa.tfvars" -auto-approve
 
   apply-prod:
     if: github.event.pull_request.merged == true && github.base_ref == 'master'
@@ -93,5 +92,4 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
           terraform init
-          terraform workspace select prod || terraform workspace new prod
-          terraform apply -var-file="prod.tfvars" -auto-approve
+          terraform apply -var-file="environments/prod.tfvars" -auto-approve
