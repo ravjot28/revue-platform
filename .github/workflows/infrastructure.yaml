@@ -1,0 +1,96 @@
+name: Terraform Pipeline
+
+on:
+  push:
+    branches:
+      - 'feature/*'
+  pull_request:
+    types: [closed]
+    branches:
+      - develop
+      - master
+
+env:
+  TERRAFORM_DIR: '1-infrastructure'
+
+jobs:
+  bootstrap-and-plan:
+    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'feature/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Bootstrap
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: |
+          terraform init
+          terraform validate
+
+      - name: Plan QA
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
+        run: |
+          terraform workspace select qa || terraform workspace new qa
+          terraform plan -var-file="qa.tfvars"
+
+      - name: Plan PROD
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
+        run: |
+          terraform workspace select prod || terraform workspace new prod
+          terraform plan -var-file="prod.tfvars"
+
+  apply-qa:
+#    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Apply QA
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
+        run: |
+          terraform init
+          terraform workspace select qa || terraform workspace new qa
+          terraform apply -var-file="qa.tfvars" -auto-approve
+
+  apply-prod:
+    if: github.event.pull_request.merged == true && github.base_ref == 'master'
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Apply PROD
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
+        run: |
+          terraform init
+          terraform workspace select prod || terraform workspace new prod
+          terraform apply -var-file="prod.tfvars" -auto-approve

@@ -1,0 +1,28 @@
+name: Terraform Destroy QA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy-qa:
+    runs-on: ubuntu-latest
+    environment: qa
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: feature/test
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Destroy QA
+        working-directory: 1-infrastructure
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
+          ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
+        run: |
+          terraform init
+          terraform workspace select qa
+          terraform destroy -var-file="qa.tfvars" -auto-approve
