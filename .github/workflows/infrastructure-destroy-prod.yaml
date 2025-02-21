@@ -29,6 +29,10 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
-          terraform init
+          terraform init  \
+          -backend-config="resource_group_name=revue-tfstate-rg" \
+          -backend-config="storage_account_name=revuetfstatecya4cd8g" \
+          -backend-config="container_name=tfstate-prod" \
+          -backend-config="key=terraform.tfstate"
           terraform workspace select prod
           terraform destroy -var-file="prod.tfvars" -auto-approve
