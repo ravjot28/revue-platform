@@ -16,7 +16,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Destroy PROD
-        working-directory: 1-infrastructure
+        working-directory: infrastructure/terraform/1-infrastructure
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}

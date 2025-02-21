@@ -11,7 +11,8 @@ on:
       - master
 
 env:
-  TERRAFORM_DIR: '1-infrastructure'
+  BOOTSTRAP_TERRAFORM_DIR: 'infrastructure/terraform/0-bootstrap'
+  RESOURCE_TERRAFORM_DIR: 'infrastructure/terraform/1-infrastructure'
 
 jobs:
   bootstrap-and-plan:
@@ -24,13 +25,13 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Bootstrap
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: ${{ env.BOOTSTRAP_TERRAFORM_DIR }}
         run: |
           terraform init
           terraform validate
 
       - name: Plan QA
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
@@ -41,7 +42,7 @@ jobs:
           terraform plan -var-file="qa.tfvars"
 
       - name: Plan PROD
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}
@@ -62,7 +63,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Apply QA
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
@@ -84,7 +85,7 @@ jobs:
         uses: hashicorp/setup-terraform@v2
 
       - name: Apply PROD
-        working-directory: ${{ env.TERRAFORM_DIR }}
+        working-directory: ${{ env.RESOURCE_TERRAFORM_DIR }}
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
           ARM_TENANT_ID: ${{ secrets.PROD_TENANT_ID }}
