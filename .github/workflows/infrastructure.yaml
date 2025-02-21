@@ -11,27 +11,8 @@ on:
       - master
 
 jobs:
-  bootstrap:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: '{"clientId":"${{ secrets.QA_CLIENT_ID }}","clientSecret":"${{ secrets.QA_CLIENT_SECRET }}","subscriptionId":"${{ secrets.QA_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.QA_TENANT_ID }}"}'
-
-      - name: Bootstrap
-        working-directory: infrastructure/terraform/0-bootstrap
-        run: |
-          terraform init
-          terraform apply -auto-approve -var-file="environments/qa.tfvars"
 
   plan-environments:
-    needs: bootstrap
     if: github.ref_type == 'branch' && startsWith(github.ref_name, 'feature/')
     runs-on: ubuntu-latest
     steps:
@@ -68,7 +49,6 @@ jobs:
           terraform plan -var-file="environments/prod.tfvars"
 
   apply-qa:
-    needs: bootstrap
 #    if: github.event.pull_request.merged == true && github.base_ref == 'develop'
     runs-on: ubuntu-latest
     environment: qa
@@ -95,7 +75,6 @@ jobs:
           terraform apply -auto-approve -var-file="environments/qa.tfvars"
 
   apply-prod:
-    needs: bootstrap
     if: github.event.pull_request.merged == true && github.base_ref == 'master'
     runs-on: ubuntu-latest
     environment: prod
