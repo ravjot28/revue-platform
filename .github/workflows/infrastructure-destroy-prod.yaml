@@ -15,6 +15,12 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Azure Login - PROD
+        uses: azure/login@v1
+        with:
+          creds: '{"clientId":"${{ secrets.QA_CLIENT_ID }}","clientSecret":"${{ secrets.QA_CLIENT_SECRET }}","subscriptionId":"${{ secrets.QA_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.QA_TENANT_ID }}"}'
+
+
       - name: Destroy PROD
         working-directory: infrastructure/terraform/1-infrastructure
         env:
