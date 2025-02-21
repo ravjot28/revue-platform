@@ -29,7 +29,7 @@ jobs:
       - name: Plan QA
         working-directory: infrastructure/terraform/1-infrastructure
         run: |
-          terraform init  \
+          terraform init  -reconfigure  \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-qa" \
@@ -53,7 +53,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
-          terraform init  \
+          terraform init -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-prod" \
@@ -88,7 +88,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
         run: |
-          terraform init  \
+          terraform init  -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-qa" \
@@ -122,7 +122,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.PROD_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.PROD_CLIENT_SECRET }}
         run: |
-          terraform init  \
+          terraform init  -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-prod" \
