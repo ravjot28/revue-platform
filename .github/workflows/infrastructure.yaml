@@ -47,11 +47,6 @@ jobs:
 
       - name: Plan QA
         working-directory: infrastructure/terraform/1-infrastructure
-        env:
-          ARM_SUBSCRIPTION_ID: ${{ secrets.QA_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.QA_TENANT_ID }}
-          ARM_CLIENT_ID: ${{ secrets.QA_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.QA_CLIENT_SECRET }}
         run: |
           terraform init
           terraform plan -var-file="environments/qa.tfvars"
