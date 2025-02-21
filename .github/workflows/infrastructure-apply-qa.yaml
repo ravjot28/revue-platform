@@ -28,7 +28,7 @@ jobs:
         run: |
           terraform init  -reconfigure \
           -backend-config="resource_group_name=revue-tfstate-rg" \
-          -backend-config="storage_account_name=revuetfstatecya4cd8g" \
+          -backend-config="storage_account_name=revuetfstateeu6ltgbm" \
           -backend-config="container_name=tfstate-qa" \
           -backend-config="key=terraform.tfstate" \
           -backend-config="subscription_id=${{ secrets.QA_SUBSCRIPTION_ID }}" \
