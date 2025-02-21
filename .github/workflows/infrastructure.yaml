@@ -33,7 +33,11 @@ jobs:
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-qa" \
-          -backend-config="key=terraform.tfstate"
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="subscription_id=${{ secrets.QA_SUBSCRIPTION_ID }}" \
+          -backend-config="client_id=${{ secrets.QA_CLIENT_ID }}" \
+          -backend-config="client_secret=${{ secrets.QA_CLIENT_SECRET }}" \
+          -backend-config="tenant_id=${{ secrets.QA_TENANT_ID }}"
           terraform plan -var-file="environments/qa.tfvars"
 
       - name: Azure Login - PROD
@@ -53,7 +57,11 @@ jobs:
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-prod" \
-          -backend-config="key=terraform.tfstate"
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="subscription_id=${{ secrets.PROD_SUBSCRIPTION_ID }}" \
+          -backend-config="client_id=${{ secrets.PROD_CLIENT_ID }}" \
+          -backend-config="client_secret=${{ secrets.PROD_CLIENT_SECRET }}" \
+          -backend-config="tenant_id=${{ secrets.PROD_TENANT_ID }}"
           terraform plan -var-file="environments/prod.tfvars"
 
   apply-qa:
@@ -84,7 +92,11 @@ jobs:
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-qa" \
-          -backend-config="key=terraform.tfstate"
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="subscription_id=${{ secrets.QA_SUBSCRIPTION_ID }}" \
+          -backend-config="client_id=${{ secrets.QA_CLIENT_ID }}" \
+          -backend-config="client_secret=${{ secrets.QA_CLIENT_SECRET }}" \
+          -backend-config="tenant_id=${{ secrets.QA_TENANT_ID }}"
           terraform apply -auto-approve -var-file="environments/qa.tfvars"
 
   apply-prod:
@@ -114,5 +126,9 @@ jobs:
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-prod" \
-          -backend-config="key=terraform.tfstate"
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="subscription_id=${{ secrets.PROD_SUBSCRIPTION_ID }}" \
+          -backend-config="client_id=${{ secrets.PROD_CLIENT_ID }}" \
+          -backend-config="client_secret=${{ secrets.PROD_CLIENT_SECRET }}" \
+          -backend-config="tenant_id=${{ secrets.PROD_TENANT_ID }}"
           terraform apply -auto-approve -var-file="environments/prod.tfvars"

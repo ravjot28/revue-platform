@@ -33,6 +33,9 @@ jobs:
           -backend-config="resource_group_name=revue-tfstate-rg" \
           -backend-config="storage_account_name=revuetfstatecya4cd8g" \
           -backend-config="container_name=tfstate-prod" \
-          -backend-config="key=terraform.tfstate"
-          terraform workspace select prod
-          terraform destroy -var-file="prod.tfvars" -auto-approve
+          -backend-config="key=terraform.tfstate" \
+          -backend-config="subscription_id=${{ secrets.PROD_SUBSCRIPTION_ID }}" \
+          -backend-config="client_id=${{ secrets.PROD_CLIENT_ID }}" \
+          -backend-config="client_secret=${{ secrets.PROD_CLIENT_SECRET }}" \
+          -backend-config="tenant_id=${{ secrets.PROD_TENANT_ID }}"
+          terraform destroy -var-file="environments/prod.tfvars" -auto-approve
