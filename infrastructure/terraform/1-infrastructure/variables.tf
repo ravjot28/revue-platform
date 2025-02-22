@@ -43,3 +43,8 @@ variable "github_pat" {
   type        = string
   sensitive   = true
 }
+
+variable "github_email" {
+  description = "GitHub email for container registry authentication"
+  type        = string
+}

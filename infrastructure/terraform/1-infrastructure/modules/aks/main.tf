@@ -10,7 +10,7 @@ resource "azurerm_kubernetes_cluster" "main" {
     node_count                   = 1
     vm_size                      = "Standard_D2s_v3"
     vnet_subnet_id               = var.vnet_subnet_id
-    only_critical_addons_enabled = true
+    only_critical_addons_enabled = false
   }
 
   identity {
@@ -86,6 +86,9 @@ resource "kubernetes_secret" "github_registry" {
     ".dockerconfigjson" = jsonencode({
       auths = {
         "ghcr.io" = {
+          username = var.github_username
+          password = var.github_pat
+          email    = var.github_email
           auth = base64encode("${var.github_username}:${var.github_pat}")
         }
       }

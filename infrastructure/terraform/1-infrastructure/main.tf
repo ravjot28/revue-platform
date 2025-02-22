@@ -22,6 +22,7 @@ module "aks" {
   tags                = local.tags
   github_username     = var.github_username
   github_pat          = var.github_pat
+  github_email        = var.github_email
 }
 
 module "postgresql" {
