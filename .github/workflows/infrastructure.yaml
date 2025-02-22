@@ -4,11 +4,15 @@ on:
   push:
     branches:
       - 'feature/*'
+    paths:
+      - 'infrastructure/terraform/**' 
   pull_request:
     types: [closed]
     branches:
       - develop
       - master
+    paths:
+      - 'infrastructure/terraform/**' 
 
 jobs:
 
