@@ -2,8 +2,8 @@ resource "azurerm_cosmosdb_account" "main" {
   name                = "${var.environment}-cosmos"
   location            = var.location
   resource_group_name = var.resource_group_name
-  offer_type         = "Standard"
-  kind               = "GlobalDocumentDB"
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
 
   enable_automatic_failover = true
 

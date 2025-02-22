@@ -18,11 +18,11 @@ resource "azurerm_subnet" "postgresql" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.4.0/24"]
-  
+
   delegation {
     name = "fs"
     service_delegation {
-      name = "Microsoft.DBforPostgreSQL/flexibleServers"
+      name    = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
@@ -33,6 +33,6 @@ resource "azurerm_subnet" "cosmosdb" {
   resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.main.name
   address_prefixes     = ["10.0.5.0/24"]
-  
-  service_endpoints    = ["Microsoft.AzureCosmosDB"]
+
+  service_endpoints = ["Microsoft.AzureCosmosDB"]
 }

@@ -8,9 +8,9 @@ resource "azurerm_resource_group" "terraform_state" {
   name     = "${var.project}-tfstate-rg"
   location = var.location
   tags = {
-    Project     = var.project
-    Purpose     = "Terraform State Management"
-    ManagedBy   = "Terraform"
+    Project   = var.project
+    Purpose   = "Terraform State Management"
+    ManagedBy = "Terraform"
   }
 }
 
@@ -21,11 +21,11 @@ resource "azurerm_storage_account" "terraform_state" {
   account_tier                    = "Standard"
   account_replication_type        = "GRS"
   allow_nested_items_to_be_public = false
-  min_tls_version                = "TLS1_2"
+  min_tls_version                 = "TLS1_2"
 
   blob_properties {
     versioning_enabled = true
-    
+
     container_delete_retention_policy {
       days = 7
     }

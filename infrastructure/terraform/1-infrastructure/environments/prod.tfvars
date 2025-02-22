@@ -6,3 +6,5 @@ environment     = "revue-prod"
 location        = "eastus2"
 project         = "mvp"
 trusted_ips     = ["76.69.70.249/32"]
+github_username = ""
+github_pat      = ""

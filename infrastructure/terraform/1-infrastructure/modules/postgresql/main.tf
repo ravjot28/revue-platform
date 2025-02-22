@@ -7,7 +7,7 @@ data "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_private_dns_zone" "postgresql" {
-  name                  = "private.postgres.database.azure.com"
+  name                = "private.postgres.database.azure.com"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -37,7 +37,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   name                = "${var.environment}-postgresql"
   resource_group_name = var.resource_group_name
   location            = var.location
-  version            = "14"
+  version             = "14"
 
   administrator_login    = var.admin_username
   administrator_password = var.admin_password != null ? var.admin_password : random_password.postgresql[0].result

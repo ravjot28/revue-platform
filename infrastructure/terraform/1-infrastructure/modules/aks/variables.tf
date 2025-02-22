@@ -24,3 +24,14 @@ variable "node_sizes" {
 variable "tags" {
   type = map(string)
 }
+
+variable "github_username" {
+  description = "GitHub username for container registry authentication"
+  type        = string
+}
+
+variable "github_pat" {
+  description = "GitHub Personal Access Token for container registry authentication"
+  type        = string
+  sensitive   = true
+}

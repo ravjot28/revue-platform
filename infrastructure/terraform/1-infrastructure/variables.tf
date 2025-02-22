@@ -7,7 +7,7 @@ variable "client_id" {
 }
 
 variable "client_secret" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -21,7 +21,7 @@ variable "location" {
 }
 
 variable "environment" {
-  type    = string
+  type = string
   validation {
     condition     = contains(["revue-qa", "revue-prod"], var.environment)
     error_message = "Environment must be either 'qa' or 'prod'."
@@ -31,4 +31,15 @@ variable "environment" {
 variable "trusted_ips" {
   type    = list(string)
   default = []
+}
+
+variable "github_username" {
+  description = "GitHub username for container registry authentication"
+  type        = string
+}
+
+variable "github_pat" {
+  description = "GitHub Personal Access Token for container registry authentication"
+  type        = string
+  sensitive   = true
 }

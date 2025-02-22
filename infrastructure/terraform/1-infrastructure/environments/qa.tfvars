@@ -4,3 +4,5 @@ client_id       = ""
 client_secret   = ""
 environment     = "revue-qa"
 trusted_ips     = ["76.69.70.249/32"]
+github_username = ""
+github_pat      = ""
