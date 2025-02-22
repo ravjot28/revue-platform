@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: feature/test
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
