@@ -37,4 +37,8 @@ jobs:
           -backend-config="client_id=${{ secrets.QA_CLIENT_ID }}" \
           -backend-config="client_secret=${{ secrets.QA_CLIENT_SECRET }}" \
           -backend-config="tenant_id=${{ secrets.QA_TENANT_ID }}"
-          terraform apply -auto-approve -var-file="environments/qa.tfvars"
+          terraform apply \
+          -var="github_username=${{ secrets.GH_USER_NAME }}" \
+          -var="github_pat=${{ secrets.GH_PAT }}" \
+          -var="github_email=ravjot28@gmail.com" \
+          -auto-approve -var-file="environments/qa.tfvars"

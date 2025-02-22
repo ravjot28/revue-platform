@@ -45,7 +45,11 @@ jobs:
           -backend-config="client_id=${{ secrets.QA_CLIENT_ID }}" \
           -backend-config="client_secret=${{ secrets.QA_CLIENT_SECRET }}" \
           -backend-config="tenant_id=${{ secrets.QA_TENANT_ID }}"
-          terraform plan -var-file="environments/qa.tfvars"
+          terraform plan  \
+          -var="github_username=${{ secrets.GH_USER_NAME }}" \
+          -var="github_pat=${{ secrets.GH_PAT }}" \
+          -var="github_email=ravjot28@gmail.com" \
+          -var-file="environments/qa.tfvars"
 
       - name: Azure Login - PROD
         uses: azure/login@v1
@@ -71,4 +75,8 @@ jobs:
           -backend-config="client_id=${{ secrets.PROD_CLIENT_ID }}" \
           -backend-config="client_secret=${{ secrets.PROD_CLIENT_SECRET }}" \
           -backend-config="tenant_id=${{ secrets.PROD_TENANT_ID }}"
-          terraform plan -var-file="environments/prod.tfvars"
+          terraform plan  \
+          -var="github_username=${{ secrets.GH_USER_NAME }}" \
+          -var="github_pat=${{ secrets.GH_PAT }}" \
+          -var="github_email=ravjot28@gmail.com" \
+          -var-file="environments/prod.tfvars"
